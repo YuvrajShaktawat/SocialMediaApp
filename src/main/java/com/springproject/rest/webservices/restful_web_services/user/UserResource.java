@@ -6,6 +6,8 @@ import java.util.Locale;
 
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,12 +38,16 @@ public class UserResource {
     }
 
     @GetMapping("/users/{id}")
-    public User Users(@PathVariable int id){
+    public EntityModel<User> Users(@PathVariable int id){
         User user = UsersDaoService.findById(id);
         if (user == null) {
             throw new UserNotFoundException("User not found with id: " + id);            
         }
-        return user;
+        WebMvcLinkBuilder link = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).allUsers());
+        EntityModel<User> resource = EntityModel.of(user);
+        resource.add(link.withRel("all-users"));
+
+        return resource;
     }
 
     @PostMapping("/users")
